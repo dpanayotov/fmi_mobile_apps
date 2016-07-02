@@ -1,13 +1,22 @@
 package bg.sofia.uni.fmi.ma.weatherapp;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 public class WeatherActivity extends AppCompatActivity {
 
@@ -15,15 +24,16 @@ public class WeatherActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_weather);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+
+        if(savedInstanceState == null){
+            getSupportFragmentManager().beginTransaction().add(R.id.fragment, new WeatherActivityFragment()).commit();
+        }
 
        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                //TODO: show popup to add city
             }
         });
     }
@@ -37,16 +47,37 @@ public class WeatherActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        if(item.getItemId() == R.id.change_city){
+            //TODO: show list of citites
+            showCititesList();
         }
+        return false;
+    }
 
-        return super.onOptionsItemSelected(item);
+    private void showCititesList() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Select a city");
+        LayoutInflater inflater = getLayoutInflater();
+        View citiesListView = inflater.inflate(R.layout.cities_list, null);
+        builder.setView(citiesListView);
+        ListView listView = (ListView) citiesListView.findViewById(R.id.listView);
+        Set<String> userCities = new CityPreferences(this).getCitites();
+        List<String> cities = new ArrayList<>(userCities);
+        final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, cities);
+        listView.setAdapter(adapter);
+        builder.setAdapter(adapter, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String city = adapter.getItem(which);
+                changeCity(city);
+            }
+        });
+        builder.show();
+    }
+
+    private void changeCity(String city) {
+        WeatherActivityFragment fragment = (WeatherActivityFragment) getSupportFragmentManager().findFragmentById(R.id.fragment);
+        fragment.changeCity(city);
+        new CityPreferences(this).setCurrentCity(city);
     }
 }
