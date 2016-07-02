@@ -1,10 +1,8 @@
 package bg.sofia.uni.fmi.ma.weatherapp;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -13,27 +11,33 @@ import java.util.Set;
  */
 public class CityPreferences {
 
+    private static final String CITY = "city";
+    private static final String CITIES = "cities";
+    public static final String FILE_NAME = "cityPrefs";
+
     private SharedPreferences prefs;
 
-    public CityPreferences(Activity activity){
-        prefs = activity.getPreferences(Context.MODE_PRIVATE);
+    public CityPreferences(Context ctx){
+        this.prefs = ctx.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE);
     }
 
     public String getCurrentCity(){
-        return prefs.getString("city", "Sofia, BG");
+        return prefs.getString(CITY, "Sofia");
     }
 
     public void setCurrentCity(String city){
-        prefs.edit().putString("city", city).commit();
+        prefs.edit().putString(CITY, city).commit();
     }
 
     public void addCity(String city){
         Set<String> cities = getCitites();
         cities.add(city);
-        prefs.edit().putStringSet("cities", cities);
+        prefs.edit().putStringSet(CITIES, cities).commit();
     }
 
     public Set<String> getCitites(){
-        return prefs.getStringSet("cities", new HashSet<String>());
+        return prefs.getStringSet(CITIES, new HashSet<String>());
     }
+
+
 }

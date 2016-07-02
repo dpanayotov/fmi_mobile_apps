@@ -20,44 +20,27 @@ import java.net.URLConnection;
  */
 public class WeatherFetcher extends AsyncTask<String, Integer, JSONObject> {
 
-    private static final String WEATHER_API = "http://api.openweathermap.org/data/2.5/forecast/city?id=%s&units=%s";
+    private static final String WEATHER_API = "http://api.openweathermap.org/data/2.5/weather?q=%s&units=metric";
 
     private Context context;
-    private final ProgressDialog dialog;
 
     public WeatherFetcher(Context context){
         this.context = context;
-        this.dialog = new ProgressDialog(context);
-    }
-
-    @Override
-    protected void onPreExecute(){
-        this.dialog.setMessage("Processing");
-        this.dialog.show();
-    }
-
-    @Override
-    protected void onPostExecute(JSONObject result){
-        System.out.println(result);
-        dialog.dismiss();
     }
 
     @Override
     protected JSONObject doInBackground(String... params) {
         try {
-            URL url = new URL(String.format(WEATHER_API, params[0], params[1]));
+            URL url = new URL(String.format(WEATHER_API, params));
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            int code = connection.getResponseCode();
-            if(code != HttpURLConnection.HTTP_OK){
-                return null;
-            }
             connection.addRequestProperty("x-api-key", this.context.getString(R.string.open_weather_maps_app_id));
             try(BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))){
-                StringBuffer buffer = new StringBuffer(1024);
+                StringBuilder buffer = new StringBuilder(1024);
                 String line = "";
                 while((line = reader.readLine()) != null){
                     buffer.append(line).append("\n");
                 }
+                System.out.println(buffer.toString());
                 return new JSONObject(buffer.toString());
             }
         } catch (IOException | JSONException e) {
