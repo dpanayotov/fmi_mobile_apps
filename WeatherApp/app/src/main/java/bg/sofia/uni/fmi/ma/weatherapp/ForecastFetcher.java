@@ -12,20 +12,23 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public class WeatherFetcher extends AsyncTask<String, Integer, JSONObject> {
+/**
+ * Created by Dimitar Panayotov on 03-Jul-16.
+ */
+public class ForecastFetcher extends AsyncTask<String, Integer, JSONObject> {
 
-    private static final String WEATHER_API = "http://api.openweathermap.org/data/2.5/weather?q=%s&units=metric";
+    private static final String FORECAST_API = "http://api.openweathermap.org/data/2.5/forecast?q=%s&units=metric";
 
     private Context context;
 
-    public WeatherFetcher(Context context){
+    public ForecastFetcher(Context context){
         this.context = context;
     }
 
     @Override
     protected JSONObject doInBackground(String... params) {
         try {
-            return FetcherCommon.getResult(context, WEATHER_API, params);
+            return FetcherCommon.getResult(context, FORECAST_API, params);
         } catch (IOException | JSONException e) {
             e.printStackTrace();
         }

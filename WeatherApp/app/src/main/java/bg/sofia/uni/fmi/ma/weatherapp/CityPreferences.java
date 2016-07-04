@@ -6,9 +6,6 @@ import android.content.SharedPreferences;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Created by Dimitar Panayotov on 02-Jul-16.
- */
 public class CityPreferences {
 
     private static final String CITY = "city";
@@ -29,15 +26,30 @@ public class CityPreferences {
         prefs.edit().putString(CITY, city).commit();
     }
 
-    public void addCity(String city){
-        Set<String> cities = getCitites();
-        cities.add(city);
+    public boolean addCity(String city){
+        Set<String> cities = getCities();
+        for (String s : cities){
+            if(s.equalsIgnoreCase(city)){
+                return false;
+            }
+        }
+        boolean add = cities.add(city);
+        setCities(cities);
+        return add;
+    }
+
+    public void setCities(Set<String> cities) {
         prefs.edit().putStringSet(CITIES, cities).commit();
     }
 
-    public Set<String> getCitites(){
+    public Set<String> getCities(){
         return prefs.getStringSet(CITIES, new HashSet<String>());
     }
 
 
+    public void removeCity(String city) {
+        Set<String> cities = getCities();
+        cities.remove(city);
+        setCities(cities);
+    }
 }

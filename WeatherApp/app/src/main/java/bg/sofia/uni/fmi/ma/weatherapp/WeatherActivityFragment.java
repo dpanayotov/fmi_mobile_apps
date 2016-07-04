@@ -1,12 +1,14 @@
 package bg.sofia.uni.fmi.ma.weatherapp;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,9 +23,6 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
-/**
- * A placeholder fragment containing a simple view.
- */
 public class WeatherActivityFragment extends Fragment {
 
     private Typeface weatherFont;
@@ -34,7 +33,7 @@ public class WeatherActivityFragment extends Fragment {
     private TextView currentTemperatureField;
     private TextView weatherIcon;
 
-    Handler handler;
+   private Handler handler;
 
     public WeatherActivityFragment() {
         this.handler = new Handler();
@@ -48,64 +47,71 @@ public class WeatherActivityFragment extends Fragment {
         refreshWeather(new CityPreferences(context).getCurrentCity());
     }
 
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View rootView = inflater.inflate(R.layout.fragment_weather, container, false);
+        cityField = (TextView)rootView.findViewById(R.id.cityTextView);
+        updatedField = (TextView)rootView.findViewById(R.id.updated_field);
+        detailsField = (TextView)rootView.findViewById(R.id.details_field);
+        currentTemperatureField = (TextView)rootView.findViewById(R.id.current_temperature_field);
+        weatherIcon = (TextView)rootView.findViewById(R.id.weather_icon);
+        weatherIcon.setTypeface(weatherFont);
+        weatherIcon.setTextColor(ContextCompat.getColor(getContext(), R.color.colorAccent));
+        return rootView;
+    }
+
     private void refreshWeather(String currentCity) {
-        AsyncTask<String, Integer, JSONObject> weather = new WeatherFetcher(getContext()).execute(currentCity.trim(), "metrics");
+        AsyncTask<String, Integer, JSONObject> weather = new WeatherFetcher(getContext()).execute(currentCity.trim());
         try {
             final JSONObject weatherJson = weather.get();
-            if(weatherJson == null){
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if(weatherJson == null){
                         Toast.makeText(getActivity(), getActivity().getString(R.string.place_not_found), Toast.LENGTH_LONG).show();
-                    }
-                });
-            }else{
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
+                    }else{
                         displayWeather(weatherJson);
                     }
-                });
-            }
+                }
+            });
         } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
+            Log.e("WeatherApp", "Could not fetch data for city " + currentCity, e);
         }
     }
 
     private void displayWeather(JSONObject json) {
         try {
-            cityField.setText(json.getString("name").toUpperCase(Locale.US) +
-                    ", " +
-                    json.getJSONObject("sys").getString("country"));
+            final String city = json.getString("name");
+            cityField.setText(String.format("%s, %s", city.toUpperCase(Locale.US), json.getJSONObject("sys").getString("country")));
+            cityField.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(getActivity(), DailyActivity.class);
+                    intent.putExtra("city", city);
+                    getActivity().startActivity(intent);
+                }
+            });
 
             JSONObject details = json.getJSONArray("weather").getJSONObject(0);
             JSONObject main = json.getJSONObject("main");
             JSONObject wind = json.getJSONObject("wind");
             detailsField.setText(
-                    details.getString("description").toUpperCase(Locale.US) +
-                            "\n" + "Wind: " + wind.getDouble("speed") + "km/h" +
-                            "\n" + "Humidity: " + main.getString("humidity") + "%" +
-                            "\n" + "Pressure: " + main.getString("pressure") + " hPa");
+                    String.format("%s\nWind: %sm/s\nHumidity: %s%%\nPressure: %s hPa", details.getString("description").toUpperCase(Locale.US), wind.getDouble("speed"), main.getString("humidity"), main.getString("pressure")));
 
             currentTemperatureField.setText(
-                    String.format("%.2f", main.getDouble("temp"))+ " ℃");
+                    String.format("%s ℃", String.format("%.2f", main.getDouble("temp"))));
 
             DateFormat df = DateFormat.getDateTimeInstance();
             String updatedOn = df.format(new Date(json.getLong("dt") * 1000));
-            updatedField.setText("Last update: " + updatedOn);
+            updatedField.setText(String.format("Last update: %s", updatedOn));
 
             setWeatherIcon(details.getInt("id"),
                     json.getJSONObject("sys").getLong("sunrise") * 1000,
                     json.getJSONObject("sys").getLong("sunset") * 1000);
 
         }catch(Exception e){
-            Log.e("SimpleWeather", "One or more fields not found in the JSON data");
+            Log.e("WeatherApp", "A field is missing in the JSON data", e);
         }
-    }
-
-    private void clearFileds() {
-        this.updatedField.setText("");
-        this.detailsField.setText("");
     }
 
     private void setWeatherIcon(int actualId, long sunrise, long sunset) {
@@ -139,19 +145,5 @@ public class WeatherActivityFragment extends Fragment {
 
     public void changeCity(String city){
         refreshWeather(city);
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_weather, container, false);
-        cityField = (TextView)rootView.findViewById(R.id.cityTextView);
-        updatedField = (TextView)rootView.findViewById(R.id.updated_field);
-        detailsField = (TextView)rootView.findViewById(R.id.details_field);
-        currentTemperatureField = (TextView)rootView.findViewById(R.id.current_temperature_field);
-        weatherIcon = (TextView)rootView.findViewById(R.id.weather_icon);
-        weatherIcon.setTypeface(weatherFont);
-        weatherIcon.setTextColor(ContextCompat.getColor(getContext(), R.color.colorAccent));
-        return rootView;
     }
 }
