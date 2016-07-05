@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -86,7 +85,7 @@ public class WeatherActivityFragment extends Fragment {
             cityField.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent = new Intent(getActivity(), DailyActivity.class);
+                    Intent intent = new Intent(getActivity(), HourlyActivity.class);
                     intent.putExtra("city", city);
                     getActivity().startActivity(intent);
                 }

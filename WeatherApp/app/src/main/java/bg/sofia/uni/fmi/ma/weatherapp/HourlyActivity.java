@@ -1,11 +1,7 @@
 package bg.sofia.uni.fmi.ma.weatherapp;
 
-import android.content.Context;
-import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -25,16 +21,14 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.DateFormat;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
-public class DailyActivity extends AppCompatActivity {
+public class HourlyActivity extends AppCompatActivity {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -55,7 +49,7 @@ public class DailyActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_daily);
+        setContentView(R.layout.activity_hourly);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -145,7 +139,7 @@ public class DailyActivity extends AppCompatActivity {
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_daily, container, false);
+            View rootView = inflater.inflate(R.layout.fragment_hourly, container, false);
             int item = getArguments().getInt(ARG_SECTION_NUMBER);
             cityField = (TextView)rootView.findViewById(R.id.cityTextView);
             updatedField = (TextView)rootView.findViewById(R.id.updated_field);
@@ -162,14 +156,11 @@ public class DailyActivity extends AppCompatActivity {
             try {
                 String cityName = json.getJSONObject("city").getString("name");
                 String country = json.getJSONObject("city").getString("country");
-
-                int[] indexes = dayIndexes(json);
-                int index = indexes[item] + item;
                 cityField.setText(String.format("%s, %s", cityName.toUpperCase(Locale.US), country));
 
                 JSONArray days = json.getJSONArray("list");
                 System.out.println(days.length());
-                JSONObject obj = days.getJSONObject(index);
+                JSONObject obj = days.getJSONObject(item);
 
                 JSONObject details = obj.getJSONArray("weather").getJSONObject(0);
                 JSONObject main = obj.getJSONObject("main");
@@ -253,29 +244,5 @@ public class DailyActivity extends AppCompatActivity {
             }
             return null;
         }
-    }
-
-    private static int[] dayIndexes(JSONObject json) throws JSONException {
-        JSONArray data = json.getJSONArray("list");
-        int[] indexes = new int[5];
-        int j = 0;
-        Calendar calendar = Calendar.getInstance();
-        for(int i = 0; i<data.length() && j < indexes.length; i++){
-            JSONObject obj = data.getJSONObject(i);
-            calendar.setTime(new Date(obj.getLong("dt") * 1000));
-            int dateNext = calendar.get(Calendar.DATE);
-            int monthNext = calendar.get(Calendar.MONTH);
-            int hour = calendar.get(Calendar.HOUR);
-
-            calendar.setTime(new Date());
-            int dateNow = calendar.get(Calendar.DATE);
-            int monthNow = calendar.get(Calendar.MONTH);
-            if(monthNext > monthNow || dateNext > dateNow){
-                if(hour == 15){
-                    indexes[j++] = i;
-                }
-            }
-        }
-        return indexes;
     }
 }

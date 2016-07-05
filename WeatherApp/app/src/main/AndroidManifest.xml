@@ -21,8 +21,8 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".DailyActivity"
-            android:label="@string/title_activity_daily"
+            android:name=".HourlyActivity"
+            android:label="@string/title_activity_hourly"
             android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 

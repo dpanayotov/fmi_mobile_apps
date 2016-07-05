@@ -6,7 +6,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="bg.sofia.uni.fmi.ma.weatherapp.DailyActivity$PlaceholderFragment">
+    tools:context=".HourlyActivity$PlaceholderFragment">
 
     <TextView
         android:id="@+id/section_label"
